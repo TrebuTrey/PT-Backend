@@ -4,12 +4,13 @@
 // Subject:  Object Oriented Programming
 // Java Week 05 Lab  
 //
-package week05;
+package week05.week05Lab;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-
-
-
+import week05.week05Lab.Card.Suit;
 
 public class Week05OOPLab {
 
@@ -49,10 +50,10 @@ public class Week05OOPLab {
 		//
 		System.out.println("\nQuestion 1: Card Class");
 		// Add your code here to instantiate a Card
-		
+		Card c1 = new Card("King", Suit.DIAMONDS);
 		
 		// Call the describe method on the newly instantiated card.
-		
+		c1.describe();
 		
 		
 		
@@ -72,10 +73,10 @@ public class Week05OOPLab {
 		//
 		System.out.println("\nQuestion 2: Deck Class");
 	    // Add your code here to instantiate a Deck	
-	    
+	    Deck deck = new Deck();
 	    
 	    // Call the describe method on the newly instantiated deck.
-	    
+	    deck.describe();
 	    
 	    
 	    
@@ -85,11 +86,11 @@ public class Week05OOPLab {
 		//		Add a shuffle method within the Deck Class
 		System.out.println("\nQuestion 3: Deck shuffle() method");
 		// Test your method here
-		
+		deck.shuffle();
 		
 		
 		// Call the describe method on the newly shuffled deck.
-
+		deck.describe();
 		
 		
 		
@@ -97,8 +98,10 @@ public class Week05OOPLab {
 		//		Add a draw method within the Deck Class
 		System.out.println("\nQuestion 4: Deck draw() method");
 		// Test your method here
-		
-		
+		List<Card> hand = deck.draw(4);
+		for (Card card: hand) {
+			card.describe();
+		}
 		
 		
 		
@@ -115,9 +118,14 @@ public class Week05OOPLab {
 		// 			and deal the cards out to the "players" in the Map.
 		System.out.println("\nQuestion 5: Create Game");
 		// Call your method here
-
+		Map<String, List<Card>> gameBoard = createGame(4);
 		
-		
+		for (String player: gameBoard.keySet()) {
+			System.out.println("Hand of " + player);
+			for (Card card: gameBoard.get(player)) {
+				card.describe();
+			}
+		}
 		
 		
 		
@@ -126,7 +134,17 @@ public class Week05OOPLab {
 	} 
 	
 	// Method 5:
-	
+	public static Map<String, List<Card>> createGame(int numOfPlayers){
+		Map<String, List<Card>> gameBoard = new HashMap<String, List<Card>>(); 
+		Deck deck = new Deck();
+		deck.shuffle();
+		for (int i = 1; i <= numOfPlayers; i++) {
+			String playerName = "Player " + i;
+			gameBoard.put(playerName, deck.draw(5));
+		}
+		
+		return gameBoard;
+	}
 	
 	
 	
