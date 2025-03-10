@@ -1,4 +1,4 @@
-package week05;
+package week05.Notes;
 
 public class InheritanceAbstractionPolymorphism {
 	public static void main(String[] args) {
@@ -11,7 +11,11 @@ public class InheritanceAbstractionPolymorphism {
 		 * example:
 		 * 
 		 * public class ChildClass extends ParentClass {
-		 * 	//TODO
+		 * 	// any parent constructors will need implementation
+		 * 
+		 * 	public ChildClass(){
+		 * 		super(ParentClass)
+		 * 	}
 		 * }
 		 * 
 		 * Abstraction

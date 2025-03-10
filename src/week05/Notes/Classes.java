@@ -1,4 +1,4 @@
-package week05;
+package week05.Notes;
 
 public class Classes {
 	public static void main(String[] args) {
