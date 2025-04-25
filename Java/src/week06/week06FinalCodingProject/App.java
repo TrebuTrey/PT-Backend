@@ -21,6 +21,9 @@ public class App {
 			deck.draw(p2);
 		}
 		
+		p1.describe();
+		p2.describe();
+		
 		for(int i = 0; i < p1.startingCardCount; i++) {
 			card1 = p1.flip();
 			card2 = p2.flip();

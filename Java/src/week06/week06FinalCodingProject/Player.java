@@ -21,6 +21,16 @@ public class Player {
 		startingCardCount = hand.size();
 	}
 	
+	public void describe() {
+		System.out.println("Player name: " + getName());
+		System.out.println("Card Count after last draw: " + startingCardCount);
+		System.out.println("Cards in hand: ");
+		
+		for(Card card: hand) {
+			card.describe();
+		}
+	}
+	
 	public Card flip() {
 		Collections.shuffle(hand);
 		return hand.removeFirst();
@@ -35,7 +45,8 @@ public class Player {
 	}
 	
 	public String victoryLap() {
-		return getName() + " is the best! No luck here.";
+		return getName() + " is the best! No luck here. Total Score: "
+				+ finalScore();
 	}
 
 	public String getName() {
