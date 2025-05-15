@@ -14,11 +14,17 @@ public class ProjectsApp {
 	
 	//@formatter:off
 	private List<String> operations = List.of(
-			"1) add a project"
+			"1) add a project",
+			"2) list projects",
+			"3) select a project",
+			"4) update project details",
+			"5) delete a project"
 			);
 	//@formatter:on
 	
 	private Scanner scanner = new Scanner(System.in);
+	
+	private Project curProject;
 	
 	public static void main(String[] args) {
 		
@@ -40,6 +46,18 @@ public class ProjectsApp {
 				case 1:
 					createProject();
 					break;
+				case 2:
+					listProjects();
+					break;
+				case 3:
+					selectProject();
+					break;
+				case 4:
+					updateProjectDetails();
+					break;
+				case 5:
+					deleteProject();
+					break;
 				default:
 					System.out.println("\n" + selection + 
 							" is not a valid selection. Try again.");
@@ -50,6 +68,75 @@ public class ProjectsApp {
 				
 			
 		}
+		
+	}
+
+	private void deleteProject() {
+		listProjects();
+		Integer id = getIntInput("Please select a project to delete"
+				+ " using its project_id");
+		projectService.deleteProject(id);
+		
+		System.out.println("Project successfully deleted.");
+		
+		try {
+			curProject = null;
+		} catch(NullPointerException e) {
+			throw new DbException(e);
+		}
+	}
+
+	private void updateProjectDetails() {
+		if(Objects.isNull(curProject)) {
+			System.out.println("\nPlease select a Project.");
+			return;
+		}
+		
+		String projectName = getStringInput("Enter new Project "
+				+ "name for [" + curProject.getProjectName() + "]");
+		BigDecimal estimatedHours = getDecimalInput("Enter updated estimate"
+				+ " hours to replace [" + curProject.getEstimatedHours() + "]");
+		BigDecimal actualHours = getDecimalInput("Enter updated acutal"
+				+ " hours to replace [" + curProject.getActualHours() + "]");
+		Integer difficulty = getIntInput("Enter updated difficulty"
+				+ " to replace [" + curProject.getDifficulty() + "]");
+		String notes = getStringInput("Enter new notes "
+				+ "to replace [" + curProject.getNotes() + "]");
+		
+		Project newProject = new Project();
+		
+		newProject.setProjectId(curProject.getProjectId());
+		newProject.setProjectName(Objects.isNull(projectName)? curProject.getProjectName(): projectName);
+		newProject.setEstimatedHours(Objects.isNull(estimatedHours)? curProject.getEstimatedHours(): estimatedHours);
+		newProject.setActualHours(Objects.isNull(actualHours)? curProject.getActualHours(): actualHours);
+		newProject.setDifficulty(Objects.isNull(difficulty)? curProject.getDifficulty(): difficulty);
+		newProject.setNotes(Objects.isNull(notes)? curProject.getNotes(): notes);
+		
+		projectService.modifyProjectDetails(newProject);
+		curProject = projectService.fetchProjectById(curProject.getProjectId());
+		
+	}
+
+	private void selectProject() {
+		listProjects();
+		Integer projectID = getIntInput("Enter a project ID to select a project");
+		curProject = null;
+		curProject = projectService.fetchProjectById(projectID);
+		
+		if(Objects.isNull(curProject)) {
+			System.out.println("Invalid project ID selected.");
+		}
+		
+	}
+
+	private void listProjects() {
+		List<Project> projects = projectService.fetchAllProjects();
+		
+		System.out.println("\nProjects:");
+		
+		projects.forEach(project -> 
+			System.out.println(project.getProjectId() + " : " 
+					+ project.getProjectName()));
 		
 	}
 
@@ -84,7 +171,7 @@ public class ProjectsApp {
 	
 	private BigDecimal getDecimalInput(String prompt) {
 		String input = getStringInput(prompt);
-		if(Objects.isNull(input) == true) {
+		if(Objects.isNull(input)) {
 			return null;
 		}
 		
@@ -114,13 +201,19 @@ public class ProjectsApp {
 		System.out.print(prompt + ": ");
 		String input = scanner.nextLine();
 		
-		return Objects.isNull(input) ? null: input.trim();
+		return (Objects.isNull(input) || input.isBlank()) ? null: input.trim();
 	}
 
 	private void printOperations() {
 		System.out.println("\nThese are the available selections. "
 				+ "Press the Enter key to quit.");
 		operations.forEach(line -> System.out.println(" " + line));
+		
+		String selProject = Objects.isNull(curProject) ? 
+				"\nYou are not working with a project." :
+				"\nYou are working with project: " + curProject;
+		
+		System.out.println(selProject);
 	}
 	
 	private boolean exitMenu() {
