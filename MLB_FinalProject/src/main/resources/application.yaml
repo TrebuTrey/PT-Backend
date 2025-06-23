@@ -1,0 +1,15 @@
+spring:
+   datasource:
+      username: major_league
+      password: major_league
+      url: jdbc:mysql://localhost:3306/major_league
+      
+   jpa:
+      hibernate:
+         ddl-auto: update
+      show-sql: true
+      defer-datasource-initialization: true
+      
+   sql:
+      init:
+         mode: always
