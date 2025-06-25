@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import mlb.teams.entity.Owner;
 
-public interface OwnerService extends JpaRepository<Owner, Long> {
+public interface OwnerRepository extends JpaRepository<Owner, Long> {
 
 
 }

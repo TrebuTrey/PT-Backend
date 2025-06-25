@@ -1,6 +1,7 @@
 package mlb.teams.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,9 +55,24 @@ public class StadiumController {
 		return stadiumServices.retrieveStadiumById(stadiumId);
 	}
 	
+	@GetMapping("/concessions-pairs")
+	public List<Map<String, Long>> retrieveStadiumConcessionPairs(){
+		log.info("show all stadium-concessions pairs");
+		return stadiumServices.retrieveStadiumConcessionPairs();
+	}
+	
 	@DeleteMapping("/{stadiumId}")
 	public void deleteStadiumById(@PathVariable Long stadiumId) {
 		log.info("deleting Stadium with ID={}", stadiumId);
-		stadiumServices.deleteStadiumById(stadiumId);
+		Stadium stadium = stadiumServices.retrieveStadiumById(stadiumId);
+		stadiumServices.deleteStadiumById(stadium);
+	}
+	
+	@DeleteMapping("/{stadiumId}/remove-concessions/{concessionsId}")
+	public void removeStadiumConcessionById(
+			@PathVariable Long stadiumId,
+			@PathVariable Long concessionsId) {
+		log.info("removing Concessions from Stadium with ID={}", stadiumId);
+		stadiumServices.removeConcessionsFromStadium(stadiumId, concessionsId);
 	}
 }

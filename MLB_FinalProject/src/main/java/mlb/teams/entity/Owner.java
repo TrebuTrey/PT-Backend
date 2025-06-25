@@ -33,9 +33,9 @@ public class Owner {
 
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
-	@OneToOne(optional=false)
+	@OneToOne(optional=true)
 	@JoinColumn(name = "teamId")
 	@JsonBackReference
-	MLB team = new MLB();
+	private MLB team;
 	
 }

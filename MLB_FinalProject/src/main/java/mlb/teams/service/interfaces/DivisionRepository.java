@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import mlb.teams.entity.Division;
 
-public interface DivisionService extends JpaRepository<Division, Long> {
+public interface DivisionRepository extends JpaRepository<Division, Long> {
 
 
 }

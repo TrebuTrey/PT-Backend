@@ -41,6 +41,14 @@ public class DivisionController {
 		return divServices.saveDivision(divisionData);
 	}
 	
+	@PutMapping("/division/{divId}/add-team/{mlbId}")
+	private void addTeamToDivision(
+			@PathVariable Long divId, @PathVariable String mlbId) {
+		Division div = divServices.retrieveDivById(divId);
+		log.info("Adding MLB with ID = %s to Division with ID = %s", mlbId, divId);
+		divServices.addTeamToDivision(div, mlbId);
+	}
+	
 	@GetMapping("/division")
 	private List<Division> retrieveDivisions(){
 		return divServices.retrieveAllDivisions();
@@ -53,7 +61,8 @@ public class DivisionController {
 	
 	@DeleteMapping("/division/{divId}")
 	private void deleteDivision(@PathVariable Long divId) {
-		divServices.deleteDivision(divId);
+		Division div = divServices.retrieveDivById(divId);
+		divServices.deleteDivision(div);
 	}
 	
 	

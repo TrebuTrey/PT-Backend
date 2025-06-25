@@ -43,15 +43,16 @@ public class MLB {
 	    BigDecimal totalSlg = BigDecimal.ZERO;
 	    BigDecimal totalOpsPlus = BigDecimal.ZERO;
 
-	    int count = players.size();
+	    int count = 0;
 
 	    for (Player player : players) {
 	        PlayerStats stats = player.getStats();
-	        if (stats != null) {
+	        if (stats != null && !player.getPlayerPosition().equalsIgnoreCase("P")) {
 	            totalAvg = totalAvg.add(defaultZero(stats.getAvg()));
 	            totalObp = totalObp.add(defaultZero(stats.getObp()));
 	            totalSlg = totalSlg.add(defaultZero(stats.getSlg()));
 	            totalOpsPlus = totalOpsPlus.add(defaultZero(stats.getOpsPlus()));
+	            count += 1;
 	        }
 	    }
 

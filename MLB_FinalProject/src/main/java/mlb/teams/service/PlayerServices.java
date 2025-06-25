@@ -8,14 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import mlb.teams.entity.Player;
-import mlb.teams.service.interfaces.PlayerService;
+import mlb.teams.service.interfaces.PlayerRepository;
 import mlb.teams.utility.MethodUtils;
 
 @Service
 public class PlayerServices {
 
 	@Autowired
-	private PlayerService playerService;
+	private PlayerRepository playerRepository;
 	
 	@Autowired
 	private MLBServices mlbServices;
@@ -28,7 +28,7 @@ public class PlayerServices {
 		
 		copyPlayerFields(player, updatedPlayer);
 		
-		return playerService.save(player);
+		return playerRepository.save(player);
 	}
 	
 	private void copyPlayerFields(Player savePlayer, Player passedPlayer) {
@@ -44,26 +44,31 @@ public class PlayerServices {
 	}
 
 	private Player findOrCreatePlayer(Long playerId) {
-		return MethodUtils.findOrCreateNew(playerService, playerId, Player::new);
+		return MethodUtils.findOrCreateNew(playerRepository, playerId, Player::new);
 	}
 	
 	private Player findPlayerById(Long playerId) {
-		return MethodUtils.findById(playerService, playerId, "Player");
+		return MethodUtils.findById(playerRepository, playerId, "Player");
 	}
 
 	public List<Player> retrieveAllPlayers() {
-		return playerService.findAll();
+		return playerRepository.findAll();
 	}
 	
 	public List<Player> retrieveAllByLastName(String lastName) {
-		return playerService.findByPlayerLastNameIgnoreCase(lastName);
+		return playerRepository.findByPlayerLastNameIgnoreCase(lastName);
 	}
 
 	public Player retrievePlayerById(Long playerId) {
 		return findPlayerById(playerId);
 	}
 
-	public void deletePlayerById(Long playerId) {
-		playerService.deleteById(playerId);
+	public void deletePlayerById(Player player) {
+		
+		if(player.getTeam() != null) {
+			player.setTeam(null);
+		}
+		
+		playerRepository.deleteById(player.getPlayerId());
 	}
 }

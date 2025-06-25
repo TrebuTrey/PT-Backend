@@ -6,15 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import mlb.teams.entity.MLB;
 import mlb.teams.entity.Owner;
-import mlb.teams.service.interfaces.OwnerService;
+import mlb.teams.service.interfaces.OwnerRepository;
 import mlb.teams.utility.MethodUtils;
 
 @Service
 public class OwnerServices {
 
 	@Autowired
-	private OwnerService ownerService;
+	private OwnerRepository ownerRepository;
 	
 	@Autowired
 	private MLBServices mlbServices;
@@ -27,7 +28,7 @@ public class OwnerServices {
 		
 		copyOwnerFields(owner, passedOwner);
 		
-		return ownerService.save(owner);
+		return ownerRepository.save(owner);
 	}
 	
 	private void copyOwnerFields(Owner savedOwner, Owner passedOwner) {
@@ -37,22 +38,27 @@ public class OwnerServices {
 	}
 
 	private Owner findOrCreateOwner(Long ownerId) {
-		return MethodUtils.findOrCreateNew(ownerService, ownerId, Owner::new);
+		return MethodUtils.findOrCreateNew(ownerRepository, ownerId, Owner::new);
 	}
 	
 	private Owner findOwnerById(Long ownerId) {
-		return MethodUtils.findById(ownerService, ownerId, "Owner");
+		return MethodUtils.findById(ownerRepository, ownerId, "Owner");
 	}
 
 	public List<Owner> retrieveAllOwners() {
-		return ownerService.findAll();
+		return ownerRepository.findAll();
 	}
 
 	public Owner retrieveOwnerById(Long ownerId) {
 		return findOwnerById(ownerId);
 	}
 
-	public void deleteOwnerById(Long ownerId) {
-		ownerService.deleteById(ownerId);
+	public void deleteOwnerById(Owner owner) {
+		if(owner.getTeam() != null) {
+			MLB team = mlbServices.retrieveTeamById(owner.getTeamName());
+			team.setOwner(null);
+			mlbServices.saveMLBTeam(team);
+		}
+		ownerRepository.deleteById(owner.getOwnerId());
 	}
 }

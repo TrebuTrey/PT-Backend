@@ -43,6 +43,16 @@ public class MLBController {
 		return mlbServices.saveMLBTeam(mlbData);
 	}
 	
+	@PutMapping("/team/{teamName}/remove-player/{playerId}")
+	public void removePlayerFromTeam(
+	    @PathVariable String teamName,
+	    @PathVariable Long playerId
+	) {
+		MLB team = mlbServices.findByNameOrAbbreviation(teamName);
+	    mlbServices.removePlayerFromTeam(team, playerId);
+	    log.info("Removing Player %s from MLB %s", playerId, teamName);
+	}
+	
 	@GetMapping("/team")
 	public List<MLB> retrieveAllTeams(){
 		log.info("retrieving all teams");
@@ -59,7 +69,7 @@ public class MLBController {
 	@DeleteMapping("/team/{mlbId}")
 	public void deleteTeamById(@PathVariable String mlbId) {
 		log.info("deleting MLB Team with ID={}", mlbId);
-		MLB mlb = mlbServices.findByNameOrAbbreviation(mlbId);
-		mlbServices.deleteTeamById(mlb.getTeamName());
+		MLB team = mlbServices.findByNameOrAbbreviation(mlbId);
+		mlbServices.deleteTeamById(team);
 	}
 }

@@ -57,6 +57,7 @@ public class OwnerController {
 	@DeleteMapping("/owner/{ownerId}")
 	public void deleteTeamById(@PathVariable Long ownerId) {
 		log.info("deleting Owner with ID={}", ownerId);
-		ownerServices.deleteOwnerById(ownerId);
+		Owner owner = ownerServices.retrieveOwnerById(ownerId);
+		ownerServices.deleteOwnerById(owner);
 	}
 }

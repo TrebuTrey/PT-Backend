@@ -6,15 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import mlb.teams.entity.Concessions;
-import mlb.teams.service.interfaces.ConcessionsService;
+import mlb.teams.entity.Stadium;
+import mlb.teams.service.interfaces.ConcessionsRepository;
 import mlb.teams.utility.MethodUtils;
 
 @Service
 public class ConcessionsServices {
 
 	@Autowired
-	private ConcessionsService concessionsService;
+	private ConcessionsRepository concessionsRepository;
 
 	@Transactional(readOnly = false)
 	public Concessions saveConcessions(Concessions passedConcessions) {
@@ -24,7 +26,7 @@ public class ConcessionsServices {
 		
 		copyConcessionsFields(concessions, passedConcessions);
 		
-		return concessionsService.save(concessions);
+		return concessionsRepository.save(concessions);
 	}
 	
 	private void copyConcessionsFields(Concessions savedConcessions, Concessions passedConcessions) {
@@ -34,22 +36,32 @@ public class ConcessionsServices {
 	}
 
 	private Concessions findOrCreateConcessions(Long concessionsId) {
-		return MethodUtils.findOrCreateNew(concessionsService, concessionsId, Concessions::new);
+		return MethodUtils.findOrCreateNew(concessionsRepository, concessionsId, Concessions::new);
 	}
 	
 	private Concessions findConcessionsById(Long concessionsId) {
-		return MethodUtils.findById(concessionsService, concessionsId, "Concessions");
+		return MethodUtils.findById(concessionsRepository, concessionsId, "Concessions");
 	}
 
 	public List<Concessions> retrieveAllConcessionss() {
-		return concessionsService.findAll();
+		return concessionsRepository.findAll();
 	}
 
 	public Concessions retrieveConcessionsById(Long concessionsId) {
 		return findConcessionsById(concessionsId);
 	}
 
+	@Transactional
 	public void deleteConcessionsById(Long concessionsId) {
-		concessionsService.deleteById(concessionsId);
+	    Concessions concessions = concessionsRepository.findById(concessionsId)
+	        .orElseThrow(() -> new EntityNotFoundException("Concessions not found"));
+
+	    // Detach from all stadiums
+	    for (Stadium s : concessions.getStadiums()) {
+	        s.getConcessions().remove(concessions); // remove from stadium side
+	    }
+	    concessions.getStadiums().clear(); // remove from concessions side
+
+	    concessionsRepository.delete(concessions);
 	}
 }

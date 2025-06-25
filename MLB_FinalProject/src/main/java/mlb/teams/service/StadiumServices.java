@@ -1,7 +1,11 @@
 package mlb.teams.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,20 +13,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import mlb.teams.entity.Concessions;
 import mlb.teams.entity.Stadium;
-import mlb.teams.service.interfaces.StadiumService;
+import mlb.teams.service.interfaces.ConcessionsRepository;
+import mlb.teams.service.interfaces.StadiumRepository;
 import mlb.teams.utility.MethodUtils;
 
 @Service
 public class StadiumServices {
 
 	@Autowired
-	private StadiumService stadiumService;
+	private StadiumRepository stadiumRepository;
 	
 	@Autowired
 	private MLBServices mlbServices;
 	
 	@Autowired
-	private ConcessionsServices conServices;
+	private ConcessionsRepository conRepository;
 
 	@Transactional(readOnly = false)
 	public Stadium saveStadium(Stadium passedStadium) {
@@ -32,7 +37,7 @@ public class StadiumServices {
 		
 		copyStadiumFields(stadium, passedStadium);
 		
-		return stadiumService.save(stadium);
+		return stadiumRepository.save(stadium);
 	}
 	
 	private void copyStadiumFields(Stadium savedStadium, Stadium passedStadium) {
@@ -54,31 +59,49 @@ public class StadiumServices {
 	}
 
 	private Stadium findOrCreateStadium(Long stadiumId) {
-		return MethodUtils.findOrCreateNew(stadiumService, stadiumId, Stadium::new);
+		return MethodUtils.findOrCreateNew(stadiumRepository, stadiumId, Stadium::new);
 	}
 	
 	private Stadium findStadiumById(Long stadiumId) {
-		return MethodUtils.findById(stadiumService, stadiumId, "Stadium");
+		return MethodUtils.findById(stadiumRepository, stadiumId, "Stadium");
 	}
 
 	public List<Stadium> retrieveAllStadiums() {
-		return stadiumService.findAll();
+		return stadiumRepository.findAll();
 	}
 
 	public Stadium retrieveStadiumById(Long stadiumId) {
 		return findStadiumById(stadiumId);
 	}
 
-	public void deleteStadiumById(Long stadiumId) {
-		stadiumService.deleteById(stadiumId);
+	@Transactional
+	public void deleteStadiumById(Stadium stadium) {
+	    // Detach from team
+	    if (stadium.getTeam() != null) {
+	        stadium.getTeam().setStadium(null); // bidirectional unlink
+	        stadium.setTeam(null);
+	    }
+
+	    // Detach from concessions (Many-to-Many)
+	    if (stadium.getConcessions() != null) {
+	        for (Concessions c : stadium.getConcessions()) {
+	            c.getStadiums().remove(stadium); // unlink from Concessions side
+	        }
+	        stadium.getConcessions().clear(); // unlink from Stadium side
+	    }
+
+	    stadiumRepository.deleteById(stadium.getStadiumId());
 	}
 	
+	@Transactional
 	public void addConcessionsToStadium(Stadium savedStadium, Stadium passedStadium) {
 		Set<Concessions> currentConcessions = savedStadium.getConcessions();
 		Set<Concessions> updatedConcessions = passedStadium.getConcessions();
 		
 		for(Concessions c: updatedConcessions) {
-			Concessions cId = conServices.retrieveConcessionsById(c.getConcessionsId());
+			Concessions cId =conRepository.findById(c.getConcessionsId()).orElseThrow(() -> 
+    		new NoSuchElementException("Concessions does not exist"));
+			
 			if(!currentConcessions.contains(c) && cId.getConcessionsId() != null) {
 				currentConcessions.add(cId);
 			}
@@ -86,4 +109,28 @@ public class StadiumServices {
 		
 		savedStadium.setConcessions(currentConcessions);
 	}
+	
+	public List<Map<String, Long>> retrieveStadiumConcessionPairs() {
+	    List<Object[]> rows = stadiumRepository.findAllStadiumConcessionPairs();
+
+	    return rows.stream().map(row -> {
+	        Map<String, Long> map = new HashMap<>();
+	        map.put("stadiumId", ((Number) row[0]).longValue());
+	        map.put("concessionsId", ((Number) row[1]).longValue());
+	        return map;
+	    }).collect(Collectors.toList());
+	}
+	
+	@Transactional
+	public Stadium removeConcessionsFromStadium(Long stadiumId, Long concessionsId) {
+	    Stadium stadium = retrieveStadiumById(stadiumId);
+
+	    Concessions concession = conRepository.findById(concessionsId).orElseThrow(() -> 
+	    		new NoSuchElementException("Concessions does not exist"));
+
+	    stadium.getConcessions().remove(concession);
+
+	    return stadiumRepository.save(stadium); // update the relationship
+	}
+
 }
